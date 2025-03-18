@@ -4,6 +4,7 @@ import { Formik, Form, Field } from 'formik';
 import { Input, Button, Form as AntForm, Typography, Alert } from 'antd';
 import * as Yup from 'yup';
 import API from '../api';
+import { useNavigate } from "react-router-dom";
 
 const { Title } = Typography;
 
@@ -13,19 +14,26 @@ const LoginSchema = Yup.object().shape({
 });
 
 const Login = () => {
-  const handleSubmit = (values, { setSubmitting, setStatus }) => {
-    API.post('/api/login', values)
-      .then(response => {
-        setStatus({ success: 'Logged in successfully!' });
-        console.log('Login response:', response.data);
-      })
-      .catch(error => {
-        setStatus({ error: 'Login failed. Please check your credentials.' });
-        console.error('Login error:', error);
-      })
-      .finally(() => {
-        setSubmitting(false);
-      });
+  const navigate = useNavigate(); // Hook for navigation
+
+  const handleSubmit = async (values, { setSubmitting, setStatus }) => {
+    try {
+      const response = await API.post("/api/login", values);
+      setStatus({ success: response.data.message });
+
+      // Store token in localStorage
+      localStorage.setItem("token", response.data.token);
+
+      // Redirect to dashboard after successful login
+      navigate("/dashboard");
+
+      console.log("Login successful, token:", response.data.token);
+    } catch (error) {
+      setStatus({ error: "Login failed. Please check your credentials." });
+      console.error("Login error:", error.response ? error.response.data : error.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
