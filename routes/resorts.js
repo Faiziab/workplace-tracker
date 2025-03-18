@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 
 // Temporary in-memory store for resorts
-let resorts = [];
+let resorts = [{ id: 1, name: "Beachside Resort", location: "Miami", clusterGM: "John Doe" }];
 
 // Create a new resort
 router.post('/', (req, res) => {
@@ -29,16 +29,16 @@ router.get('/:id', (req, res) => {
 });
 
 // Update a resort
-router.put('/:id', (req, res) => {
+router.put("/:id", (req, res) => {
   const resort = resorts.find(r => r.id === parseInt(req.params.id));
-  if (!resort) return res.status(404).json({ error: 'Resort not found' });
+  if (!resort) return res.status(404).json({ error: "Resort not found" });
 
   const { name, location, clusterGM } = req.body;
   if (name) resort.name = name;
   if (location) resort.location = location;
   if (clusterGM) resort.clusterGM = clusterGM;
 
-  res.json({ message: 'Resort updated', resort });
+  res.json({ message: "Resort updated successfully", resort });
 });
 
 // Delete a resort

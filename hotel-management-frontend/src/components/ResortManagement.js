@@ -6,6 +6,7 @@ import { Table, Button, message, Modal, Form, Input } from 'antd';
 const ResortManagement = () => {
   const [resorts, setResorts] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [editingResort, setEditingResort] = useState(null);
   const [form] = Form.useForm();
 
   // Function to fetch resorts from backend
@@ -49,6 +50,33 @@ const ResortManagement = () => {
     }
   };
 
+
+  
+  //  Handle adding/updating resort
+  const handleSubmit = async (values) => {
+    try {
+      if (editingResort) {
+        await API.put(`/api/resorts/${editingResort.id}`, values);
+        message.success("Resort updated successfully");
+      } else {
+        await API.post("/api/resorts", values);
+        message.success("Resort added successfully");
+      }
+      setIsModalVisible(false);
+      form.resetFields();
+      fetchResorts();
+    } catch (error) {
+      message.error("Failed to save resort");
+    }
+  };
+
+    //  Open modal for editing resort
+    const openEditModal = (resort) => {
+      setEditingResort(resort);
+      form.setFieldsValue(resort);
+      setIsModalVisible(true);
+    };
+
   // Define table columns
   const columns = [
     {
@@ -83,34 +111,43 @@ const ResortManagement = () => {
   ];
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div style={{ padding: "20px" }}>
       <h2>Resort Management</h2>
-      <Button type="primary" onClick={() => setIsModalVisible(true)} style={{ marginBottom: '20px' }}>
+      <Button type="primary" onClick={() => { setEditingResort(null); setIsModalVisible(true); }}>
         Add Resort
       </Button>
-      <Table dataSource={resorts} columns={columns} rowKey="id" />
+      <Table dataSource={resorts} rowKey="id" style={{ marginTop: "20px" }}>
+        <Table.Column title="ID" dataIndex="id" />
+        <Table.Column title="Name" dataIndex="name" />
+        <Table.Column title="Location" dataIndex="location" />
+        <Table.Column title="Cluster GM" dataIndex="clusterGM" />
+        <Table.Column
+          title="Actions"
+          render={(_, resort) => (
+            <>
+              <Button onClick={() => openEditModal(resort)} style={{ marginRight: "10px" }}>Edit</Button>
+              <Button danger onClick={() => deleteResort(resort.id)}>Delete</Button>
+            </>
+          )}
+        />
+      </Table>
 
-      {/* Modal for adding a new resort */}
+      {/* Modal for Adding/Editing Resort */}
       <Modal
-        title="Add New Resort"
+        title={editingResort ? "Edit Resort" : "Add Resort"}
         visible={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
-        footer={null}
+        onOk={() => form.submit()}
       >
-        <Form form={form} layout="vertical" onFinish={handleAddResort}>
-          <Form.Item label="Name" name="name" rules={[{ required: true, message: 'Please enter the resort name' }]}>
+        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+          <Form.Item name="name" label="Resort Name" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item label="Location" name="location" rules={[{ required: true, message: 'Please enter the location' }]}>
+          <Form.Item name="location" label="Location" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item label="Cluster GM" name="clusterGM" rules={[{ required: true, message: 'Please enter the Cluster GM' }]}>
+          <Form.Item name="clusterGM" label="Cluster GM" rules={[{ required: true }]}>
             <Input />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Add Resort
-            </Button>
           </Form.Item>
         </Form>
       </Modal>
