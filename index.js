@@ -11,6 +11,9 @@ app.use(cors());
 // Middleware to parse JSON bodies
 app.use(express.json());
 
+const { authenticateToken, authorizeRoles } = require("./middleware/auth");
+
+
 // Import routes
 const usersRoute = require('./routes/users');
 const resortsRoute = require('./routes/resorts');

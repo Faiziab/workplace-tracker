@@ -15,6 +15,14 @@ let users = [
     // For demo, let's hash 'password123'
     password: '$2b$12$/eoPx6jBA60BvbMSC3QHDezZBCakSU5.ditlq2NIO/PolD2AjO.dW', // bcrypt hash for "password123"
     role: 'admin'
+  },
+  {
+    id: 2,
+    phoneNumber: '0987654321',
+    // Password is stored hashed for security. In production, create users with hashed passwords.
+    // For demo, let's hash 'password123'
+    password: '$2b$12$/eoPx6jBA60BvbMSC3QHDezZBCakSU5.ditlq2NIO/PolD2AjO.dW', // bcrypt hash for "password123"
+    role: 'CGM'
   }
 ];
 
@@ -36,8 +44,13 @@ router.post('/login', async (req, res) => {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
-  // Generate JWT token
-  const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    // Generate JWT token including role
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
   res.json({ message: 'Logged in successfully', token });
 });
 

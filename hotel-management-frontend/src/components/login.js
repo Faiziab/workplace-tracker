@@ -24,8 +24,17 @@ const Login = () => {
       // Store token in localStorage
       localStorage.setItem("token", response.data.token);
 
-      // Redirect to dashboard after successful login
-      navigate("/dashboard");
+      // Decode JWT to extract role
+      const decodedToken = JSON.parse(atob(response.data.token.split(".")[1])); 
+      console.log("Decoded token:", decodedToken); // Debug: check token payload
+      localStorage.setItem("role", decodedToken.role);
+
+      // Redirect based on role
+      if (decodedToken.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      }
 
       console.log("Login successful, token:", response.data.token);
     } catch (error) {

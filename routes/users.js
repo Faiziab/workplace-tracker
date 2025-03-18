@@ -2,18 +2,19 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require("bcrypt");
+const { authenticateToken, authorizeRoles } = require("../middleware/auth");
 
 // Temporary in-memory store for users
 let users = [{ id: 1, phoneNumber: "1234567890",password: "$2b$12$/eoPx6...", role: "admin" }];
 
 
 // Get All Users
-router.get("/", (req, res) => {
+router.get("/", authenticateToken, authorizeRoles("admin"), (req, res) => {
   res.json(users);
 });
 
 // Create a new user
-router.post("/", async (req, res) => {
+router.post("/", authenticateToken, authorizeRoles("admin"), async (req, res) => {
   const { phoneNumber, password, role } = req.body;
   if (!phoneNumber || !password || !role) {
     return res.status(400).json({ error: "Missing required fields" });
@@ -21,14 +22,13 @@ router.post("/", async (req, res) => {
 
   // Hash password before storing
   const hashedPassword = await bcrypt.hash(password, 12);
-  const newUser = { id: users.length + 1, phoneNumber, password: hashedPassword, role };
-  users.push(newUser);
-
+  users.push({ id: users.length + 1, phoneNumber, password : hashedPassword, role });
   res.status(201).json({ message: "User created successfully", user: newUser });
 });
 
+
 // ✅ Get user by ID
-router.get("/:id", (req, res) => {
+router.get("/:id", authenticateToken, authorizeRoles("admin"), (req, res) => {
   const user = users.find(u => u.id === parseInt(req.params.id));
   if (!user) return res.status(404).json({ error: "User not found" });
   res.json(user);
@@ -36,7 +36,7 @@ router.get("/:id", (req, res) => {
 
 
 // Update User Details
-router.put("/:id", async (req, res) => {
+router.put("/:id", authenticateToken, authorizeRoles("admin"), async (req, res) => {
   const user = users.find((u) => u.id === parseInt(req.params.id));
   if (!user) return res.status(404).json({ error: "User not found" });
 
@@ -48,9 +48,9 @@ router.put("/:id", async (req, res) => {
   res.json({ message: "User updated successfully", user });
 });
 
-// Delete User
-router.delete("/:id", (req, res) => {
-  users = users.filter((u) => u.id !== parseInt(req.params.id));
+// Delete user (Admin Only)
+router.delete("/:id", authenticateToken, authorizeRoles("admin"), (req, res) => {
+  users = users.filter(u => u.id !== parseInt(req.params.id));
   res.json({ message: "User deleted successfully" });
 });
 
