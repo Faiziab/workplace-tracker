@@ -4,7 +4,7 @@ const router = express.Router();
 const bcrypt = require("bcrypt");
 
 // Temporary in-memory store for users
-let users = [];
+let users = [{ id: 1, phoneNumber: "1234567890",password: "$2b$12$/eoPx6...", role: "admin" }];
 
 
 // Get All Users
@@ -25,6 +25,13 @@ router.post("/", async (req, res) => {
   users.push(newUser);
 
   res.status(201).json({ message: "User created successfully", user: newUser });
+});
+
+// ✅ Get user by ID
+router.get("/:id", (req, res) => {
+  const user = users.find(u => u.id === parseInt(req.params.id));
+  if (!user) return res.status(404).json({ error: "User not found" });
+  res.json(user);
 });
 
 
